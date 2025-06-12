@@ -5,3 +5,5 @@ requests
 html5lib
 lxml
 mysql-connector-python
+fuzzywuzzy
+python-Levenshtein
