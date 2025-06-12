@@ -80,7 +80,9 @@ def fuzzy_match_properties(user_input, threshold=70):
 
 
 import spacy
-nlp = spacy.load("en_core_web_sm")
+from pathlib import Path
+
+nlp = spacy.load(Path(__file__).parent / \"en_core_web_sm\")
 
 def chunk_document(text, max_tokens=1000, overlap=200):
     doc = nlp(text)
