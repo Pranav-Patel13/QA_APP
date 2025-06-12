@@ -57,59 +57,54 @@ def search_documents(file_id=None, property_name=None, keyword=None):
 
     return results
 
-from fuzzywuzzy import fuzz
+import re
+from difflib import SequenceMatcher
+import mysql.connector
+from db_config import get_connection
 
-def fuzzy_match_properties(user_input, threshold=70):
+def extract_keywords(text):
+    stopwords = {"what", "is", "the", "of", "a", "an", "in", "for", "and", "how", "many", "list", "give", "tell", "me", "to"}
+    return [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in stopwords and len(word) > 2]
+
+def fuzzy_match_properties(user_input):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
-    all_rows = cursor.fetchall()
-    cursor.close()
+    cursor.execute("SELECT file_id, property_name, content FROM documents")
+    rows = cursor.fetchall()
     conn.close()
 
+    user_input = user_input.lower()
+    threshold = 0.6
+
+    def similarity(a, b):
+        return SequenceMatcher(None, a, b).ratio()
+
     matches = []
-    for row in all_rows:
-        score = fuzz.partial_ratio(user_input.lower(), row["property_name"].lower())
+    for row in rows:
+        score = similarity(user_input, row['property_name'].lower())
         if score >= threshold:
-            matches.append((score, row))
+            matches.append(row)
 
-    # ✅ Sort by score only (not full tuple)
-    matches.sort(key=lambda x: x[0], reverse=True)
-
-    return [match[1] for match in matches]
-
-
-import spacy
-from pathlib import Path
-nlp = spacy.load(Path(__file__).parent / "en_core_web_sm")
-
-def chunk_document(text, max_tokens=1000, overlap=200):
-    doc = nlp(text)
-    sentences = [sent.text.strip() for sent in doc.sents]
-
-    chunks = []
-    current, token_count = [], 0
-    for sentence in sentences:
-        tokens = sentence.split()
-        if token_count + len(tokens) > max_tokens:
-            chunks.append(" ".join(current))
-            current = tokens[-overlap:]  # last few tokens
-            token_count = len(current)
-        else:
-            current += tokens
-            token_count += len(tokens)
-    if current:
-        chunks.append(" ".join(current))
-    return chunks
+    return matches
 
 def keyword_sql_match(question):
-    from db_config import db_config
-    import re
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    keywords = re.findall(r'\b\w+\b', question.lower())
+    keywords = extract_keywords(question)
+    if not keywords:
+        return []
     condition = " OR ".join([f"content LIKE '%{kw}%'" for kw in keywords])
-    query = f"SELECT file_id, property_name, content FROM documents WHERE {condition} LIMIT 3"
-    cursor.execute(query)
+    cursor.execute(f"SELECT file_id, property_name, content FROM documents WHERE {condition} LIMIT 5")
     return cursor.fetchall()
+
+def chunk_document(text, max_tokens=1000, overlap=200):
+    words = text.split()
+    chunks = []
+    i = 0
+    while i < len(words):
+        chunk = " ".join(words[i:i+max_tokens])
+        chunks.append(chunk)
+        i += max_tokens - overlap
+    return chunks
+
 
