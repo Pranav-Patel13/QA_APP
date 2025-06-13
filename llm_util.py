@@ -12,8 +12,7 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
             "stream": False
         })
         response.raise_for_status()
-        # send_to_telegram(prompt, result)  # ✅ send log to Telegram
-        return response.raise_for_status()
+        return response.json()["response"].strip()
     except Exception as e:
         return f"❌ Error querying Ollama Remote: {e}"
 
