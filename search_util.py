@@ -51,39 +51,45 @@ def extract_keywords(text):
     stopwords = {"what", "is", "the", "of", "a", "an", "in", "for", "and", "how", "many", "list", "give", "tell", "me", "to"}
     return [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in stopwords and len(word) > 2]
 
-def fuzzy_match_properties(user_input, threshold=0.4):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        logging.error(f"❌ DB error in fuzzy_match_properties: {e}")
-        return []
+from fuzzywuzzy import fuzz
+import re
 
-    logging.info(f"🔍 Total rows fetched: {len(rows)}")
+def clean_text(text):
+    return re.sub(r'[^a-zA-Z0-9\s]', ' ', text).lower().strip()
 
-    user_input = user_input.lower()
+def fuzzy_match_properties(user_input, threshold=65):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
+    all_rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
     matches = []
-    for row in rows:
-        full_name = row["property_name"]
-        prop_name = full_name.lower()
-    
-        # Use cleaned tokens instead of entire string
-        user_input_clean = re.sub(r"[^a-zA-Z0-9\s]", "", user_input).strip()
-        prop_name_clean = re.sub(r"[^a-zA-Z0-9\s]", "", prop_name).strip()
-    
-        score = SequenceMatcher(None, user_input_clean, prop_name_clean).ratio()
-    
-        print(f"🔍 Comparing '{user_input_clean}' vs '{prop_name_clean}' => Score: {score:.2f}")
-        if score >= threshold:
-            matches.append((score, row))
+
+    cleaned_input = clean_text(user_input)
+    input_tokens = set(cleaned_input.split())
+
+    for row in all_rows:
+        prop_name = row["property_name"]
+        cleaned_name = clean_text(prop_name)
+        name_tokens = set(cleaned_name.split())
+
+        # Token overlap score
+        token_overlap = len(input_tokens.intersection(name_tokens)) / max(len(input_tokens), 1)
+
+        # Fuzzy score (backup)
+        fuzzy_score = fuzz.partial_ratio(cleaned_input, cleaned_name)
+
+        # Final score: balance overlap and fuzzy
+        final_score = int((token_overlap * 100 + fuzzy_score) / 2)
+
+        if final_score >= threshold:
+            matches.append((final_score, row))
 
     matches.sort(key=lambda x: x[0], reverse=True)
-    logging.info(f"✅ Matches found: {len(matches)}")
     return [match[1] for match in matches]
+
 
 def keyword_sql_match(question):
     try:
