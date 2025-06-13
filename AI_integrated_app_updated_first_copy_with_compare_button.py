@@ -114,7 +114,7 @@ def simulate_typing(text, delay=0.04):
 st.set_page_config(page_title="Document Search", layout="wide")
 st.title("📄 Word Document Search App")
 
-st.markdown("#### 🏠 Enter Property Name")
+st.markdown("#### 🏠 Enter Property Name or Property ID")
 user_input = st.text_input("property name without worrying about exact spelling", placeholder="e.g., Santosha Green City", key="property_input")
 
 matched_docs = []
