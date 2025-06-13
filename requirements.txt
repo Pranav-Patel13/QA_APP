@@ -7,3 +7,4 @@ lxml
 mysql-connector-python
 fuzzywuzzy
 python-Levenshtein
+openai
