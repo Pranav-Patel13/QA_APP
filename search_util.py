@@ -51,7 +51,7 @@ def extract_keywords(text):
     stopwords = {"what", "is", "the", "of", "a", "an", "in", "for", "and", "how", "many", "list", "give", "tell", "me", "to"}
     return [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in stopwords and len(word) > 2]
 
-def fuzzy_match_properties(user_input, threshold=0.6):
+def fuzzy_match_properties(user_input, threshold=0.3):
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -68,9 +68,13 @@ def fuzzy_match_properties(user_input, threshold=0.6):
     user_input = user_input.lower()
     matches = []
     for row in rows:
-        score = SequenceMatcher(None, user_input, row['property_name'].lower()).ratio()
+        print("📁 Property:", row["property_name"])
+        prop_name = row['property_name'].lower()
+        score = SequenceMatcher(None, user_input, prop_name).ratio()
+        print(f"🔍 Comparing '{user_input}' vs '{prop_name}' => Score: {score:.2f}")
         if score >= threshold:
             matches.append((score, row))
+
 
     matches.sort(key=lambda x: x[0], reverse=True)
     logging.info(f"✅ Matches found: {len(matches)}")
