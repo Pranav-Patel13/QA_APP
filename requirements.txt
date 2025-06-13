@@ -8,4 +8,4 @@ mysql-connector-python
 fuzzywuzzy
 python-Levenshtein
 openai
-openai>=1.0.0
+openai==0.28
