@@ -12,7 +12,8 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
             "stream": False
         })
         response.raise_for_status()
-        return response.json()["response"].strip()
+        # return response.json()["response"].strip()
+        return send_to_telegram(prompt, response.json().get("response", "").strip() or "⚠️ Empty response") or response.json().get("response", "").strip()
     except Exception as e:
         return f"❌ Error querying Ollama Remote: {e}"
 
