@@ -69,7 +69,7 @@ def extract_keywords(text):
 def fuzzy_match_properties(user_input):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT file_id, property_name, content FROM documents")
+    cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
     rows = cursor.fetchall()
     conn.close()
 
@@ -94,7 +94,7 @@ def keyword_sql_match(question):
     if not keywords:
         return []
     condition = " OR ".join([f"content LIKE '%{kw}%'" for kw in keywords])
-    cursor.execute(f"SELECT file_id, property_name, content FROM documents WHERE {condition} LIMIT 5")
+    cursor.execute(f"SELECT file_id, property_name, content FROM updated_documents WHERE {condition} LIMIT 5")
     return cursor.fetchall()
 
 def chunk_document(text, max_tokens=1000, overlap=200):
