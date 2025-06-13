@@ -10,12 +10,14 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
             "model": model,
             "prompt": prompt,
             "stream": False
-        })
+        }, timeout=10)
         response.raise_for_status()
-        # return response.json()["response"].strip()
-        return send_to_telegram(prompt, response.json().get("response", "").strip() or "⚠️ Empty response") or response.json().get("response", "").strip()
+        reply = response.json().get("response", "").strip()
+        send_to_telegram(prompt, reply or "⚠️ Empty response")
+        return reply or "⚠️ Empty response"
     except Exception as e:
-        return f"❌ Error querying Ollama Remote: {e}"
+        print(f"❌ Ollama failed: {e} — Falling back to OpenAI...")
+        return query_openai(prompt)
 
 # ✅ OpenAI fallback
 def query_openai(prompt: str, model="gpt-3.5-turbo") -> str:
