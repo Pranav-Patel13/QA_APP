@@ -226,5 +226,9 @@ if ask_button and question.strip() and docs_to_use:
                 """
 
             response = query_ollama(prompt)
-            simulate_typing(f"**Answer:** {response.strip()}")
+            if response:
+                simulate_typing(f"**Answer:** {response.strip()}")
+            else:
+                st.error("⚠️ No response received from the model.")
+
             st.markdown("---")
