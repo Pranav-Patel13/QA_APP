@@ -166,7 +166,7 @@ if ask_button and question.strip() and docs_to_use:
             From the below document chunk, extract only the {attribute} if available.
 
             Document:
-            '''{top_chunk}'''
+            \'\'\'{top_chunk}\'\'\'
 
             Provide answer in format:
             Answer: <value>
