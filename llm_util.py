@@ -16,7 +16,7 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
         send_to_telegram(prompt, reply or "⚠️ Empty response")
         return reply or "⚠️ Empty response"
     except Exception as e:
-        print(f"❌ Ollama failed: {e} — Falling back to OpenAI...")
+        print(f"🔁 Ollama failed: {e} — Falling back to OpenAI...")
         return query_openai(prompt)
 
 # ✅ OpenAI fallback
