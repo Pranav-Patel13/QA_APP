@@ -1,9 +1,10 @@
 import mysql.connector
+import streamlit as st
 
 conn = mysql.connector.connect(
-    host="switchyard.proxy.rlwy.net",
-    port=20742,
-    user="root",
-    password="luxjSngrZCgwvQTHRacfLujNrbnEhSrY",
-    database="railway"
+    host=st.secrets["DB_HOST"],
+    port=int(st.secrets["DB_PORT"]),
+    user=st.secrets["DB_USER"],
+    password=st.secrets["DB_PASS"],
+    database=st.secrets["DB_NAME"]
 )
