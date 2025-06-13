@@ -3,7 +3,7 @@ import html
 import re
 import time
 from bs4 import BeautifulSoup
-from search_util import chunk_document, fuzzy_match_properties, keyword_sql_match
+from search_util import chunk_document, fuzzy_match_properties, keyword_sql_match, search_documents
 from llm_util import query_ollama  # ✅ Import only the remote LLM call
 import pandas as pd
 
