@@ -66,26 +66,29 @@ def extract_keywords(text):
     stopwords = {"what", "is", "the", "of", "a", "an", "in", "for", "and", "how", "many", "list", "give", "tell", "me", "to"}
     return [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in stopwords and len(word) > 2]
 
-def fuzzy_match_properties(user_input):
+from difflib import SequenceMatcher
+
+def fuzzy_match_properties(user_input, threshold=0.6):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
     rows = cursor.fetchall()
+    cursor.close()
     conn.close()
 
     user_input = user_input.lower()
-    threshold = 0.6
-
-    def similarity(a, b):
-        return SequenceMatcher(None, a, b).ratio()
-
     matches = []
-    for row in rows:
-        score = similarity(user_input, row['property_name'].lower())
-        if score >= threshold:
-            matches.append(row)
 
-    return matches
+    for row in rows:
+        score = SequenceMatcher(None, user_input, row['property_name'].lower()).ratio()
+        if score >= threshold:
+            matches.append((score, row))
+
+    # Sort by similarity score descending
+    matches.sort(key=lambda x: x[0], reverse=True)
+
+    return [match[1] for match in matches]
+
 
 def keyword_sql_match(question):
     conn = get_connection()
