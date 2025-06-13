@@ -214,9 +214,13 @@ import re
 import time
 from bs4 import BeautifulSoup
 from search_util import chunk_document, fuzzy_match_properties, keyword_sql_match
-from llm_util import query_ollama
+# from llm_util import query_ollama
 import pandas as pd
 
+from llm_util import is_ollama_running, start_ollama
+
+if not is_ollama_running():
+    start_ollama()
 
 def clean_and_highlight(text, keyword):
     if not text:
