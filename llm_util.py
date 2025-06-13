@@ -32,5 +32,7 @@ def send_to_telegram(prompt, response):
     }
     try:
         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=payload)
+        return True
     except Exception as e:
         print(f"❌ Failed to send to Telegram: {e}")
+        return False
