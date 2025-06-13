@@ -19,31 +19,32 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
         return reply or "⚠️ Empty response"
     except Exception as e:
         print(f"🔁 Ollama failed: {e} — Falling back to OpenAI...")
-        return query_openai(prompt)
+        return query_openrouter(prompt)
 
-# ✅ OpenAI fallback
-def query_openai(prompt: str, model="gpt-3.5-turbo") -> str:
+# ✅ Fallback using OpenRouter API (OpenAI-compatible models)
+def query_openrouter(prompt: str, model="openrouter/mistralai/mixtral-8x7b") -> str:
     try:
         import openai
-        openai.api_key = st.secrets.get("OPENAI_API_KEY", os.environ.get("OPENAI_API_KEY", ""))
+        openai.api_key = st.secrets.get("OPENROUTER_API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
+        openai.api_base = "https://openrouter.ai/api/v1"
 
         if not openai.api_key:
-            return "❌ OpenAI API key not found."
+            return "❌ OpenRouter API key not found in st.secrets or environment."
 
-        print(f"🟣 Prompt Sent to OpenAI (legacy): {prompt}")
-        chat_response = openai.ChatCompletion.create(
+        print(f"🟣 Prompt Sent to OpenRouter: {prompt}")
+        response = openai.ChatCompletion.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3
         )
 
-        reply = chat_response.choices[0].message["content"].strip()
+        reply = response.choices[0].message["content"].strip()
         send_to_telegram(prompt, reply)
         return reply
 
     except Exception as openai_error:
+        print(f"❌ OpenRouter fallback failed: {openai_error}")
         return f"❌ LLM error: {openai_error}"
-
 import requests
 
 # Telegram Config
