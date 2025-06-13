@@ -25,19 +25,18 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
 def query_openai(prompt: str, model="gpt-3.5-turbo") -> str:
     try:
         import openai
-        openai.api_key = st.secrets.get("OPENAI_API_KEY", os.environ.get("OPENAI_API_KEY", ""))
+        from openai import OpenAI
 
-        if not openai.api_key:
-            return "❌ OpenAI API key not found in st.secrets or environment."
+        client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY", os.environ.get("OPENAI_API_KEY", "")))
 
         print(f"🟣 Prompt Sent to OpenAI: {prompt}")
-        chat_response = openai.ChatCompletion.create(
+        chat_response = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3
         )
 
-        reply = chat_response.choices[0].message["content"].strip()
+        reply = chat_response.choices[0].message.content.strip()
         send_to_telegram(prompt, reply)
         return reply
 
