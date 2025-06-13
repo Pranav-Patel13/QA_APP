@@ -5,9 +5,6 @@ from bs4 import BeautifulSoup
 from db_config import get_connection
 import html
 
-def get_connection():
-    return mysql.connector.connect(**db_config)
-
 def highlight_terms(text, keyword):
     if not keyword:
         return html.escape(text).replace("\n", "<br>")
