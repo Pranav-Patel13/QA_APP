@@ -120,12 +120,16 @@ user_input = st.text_input("property name without worrying about exact spelling"
 matched_docs = []
 selected_docs = []
 if user_input.strip():
-    matched_docs = fuzzy_match_properties(user_input.strip())
+    if user_input.strip().isdigit():
+        matched_docs = search_documents(file_id=user_input.strip())
+    else:
+        matched_docs = fuzzy_match_properties(user_input.strip())
+
     if matched_docs:
         st.success(f"Found {len(matched_docs)} matching properties.")
         for doc in matched_docs:
             label = f"📁 File ID: {doc['file_id']} — 🏠 {doc['property_name']}"
-            if st.checkbox(label, key=doc['file_id']):
+            if st.checkbox(label, key=f"chk_{doc['file_id']}"):
                 selected_docs.append(doc)
     else:
         st.warning("No matching properties found.")
