@@ -1,4 +1,5 @@
 import requests
+import streamlit as st
 
 # 🌐 Use your public Cloudflare tunnel URL
 OLLAMA_REMOTE_URL = "https://gs-recorder-producers-stomach.trycloudflare.com/api/generate"
