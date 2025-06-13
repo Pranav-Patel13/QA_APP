@@ -75,6 +75,7 @@ def fuzzy_match_properties(user_input, threshold=0.6):
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
+    print(f"🔍 Total rows fetched: {len(rows)}")
 
     user_input = user_input.lower()
     matches = []
@@ -86,6 +87,7 @@ def fuzzy_match_properties(user_input, threshold=0.6):
 
     # Sort by similarity score descending
     matches.sort(key=lambda x: x[0], reverse=True)
+    print(f"✅ Matches found: {len(matches)}")
 
     return [match[1] for match in matches]
 
