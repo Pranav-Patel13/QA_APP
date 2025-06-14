@@ -64,7 +64,17 @@ def send_to_telegram(prompt, response):
     def trim(text):
         return text[:MAX_LENGTH] + "..." if len(text) > MAX_LENGTH else text
 
-    prompt = escape_markdown(prompt or "⚠️ Empty Prompt")
+    def remove_document_section(prompt):
+    import re
+    # Replace document content inside triple quotes with placeholder
+    return re.sub(
+        r"(?i)(Document:\s*'''[\s\S]*?''')",
+        "Document:\n'''[Document omitted for log]'''",
+        prompt
+    )
+
+    prompt = remove_document_section(prompt or "⚠️ Empty Prompt")
+    prompt = escape_markdown(prompt)
     response = escape_markdown(response or "⚠️ Empty Response")
 
     # Send Prompt
