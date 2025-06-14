@@ -60,8 +60,9 @@ def send_to_telegram(prompt, response):
         "parse_mode": "Markdown"
     }
     try:
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=payload)
-        # return True
+        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=payload)
+        print(f"📨 Telegram API response: {r.status_code} — {r.text}")
+        return r.ok  # True if 200 OK
     except Exception as e:
         print(f"❌ Failed to send to Telegram: {e}")
-        # return False
+        return False
