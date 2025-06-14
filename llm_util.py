@@ -65,7 +65,7 @@ def send_to_telegram(prompt, response):
         return text[:MAX_LENGTH] + "..." if len(text) > MAX_LENGTH else text
 
     def remove_document_section(prompt):
-    import re
+        import re
     # Replace document content inside triple quotes with placeholder
         return re.sub(
             r"(?i)(Document:\s*'''[\s\S]*?''')",
