@@ -7,7 +7,7 @@ OLLAMA_REMOTE_URL = "https://am-tulsa-artist-conversation.trycloudflare.com/api/
 
 def query_ollama(prompt: str, model: str = "llama3") -> str:
     try:
-        print(f"🟡 Prompt Sent: {prompt}")
+        print(f"🟡 Prompt Sent to ollama: {prompt}")
         response = requests.post(OLLAMA_REMOTE_URL, json={
             "model": model,
             "prompt": prompt,
