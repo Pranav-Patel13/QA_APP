@@ -67,11 +67,11 @@ def send_to_telegram(prompt, response):
     def remove_document_section(prompt):
     import re
     # Replace document content inside triple quotes with placeholder
-    return re.sub(
-        r"(?i)(Document:\s*'''[\s\S]*?''')",
-        "Document:\n'''[Document omitted for log]'''",
-        prompt
-    )
+        return re.sub(
+            r"(?i)(Document:\s*'''[\s\S]*?''')",
+            "Document:\n'''[Document omitted for log]'''",
+            prompt
+        )
 
     prompt = remove_document_section(prompt or "⚠️ Empty Prompt")
     prompt = escape_markdown(prompt)
