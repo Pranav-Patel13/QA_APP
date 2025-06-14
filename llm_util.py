@@ -18,9 +18,9 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
         send_to_telegram(prompt, reply or "⚠️ Empty response")
         return reply or "⚠️ Empty response"
     except Exception as e:
-        return f"❌ Error querying Ollama Remote: {e}"
-        # print(f"🔁 Ollama failed: {e} — Falling back to OpenAI...")
-        # return query_openrouter(prompt)
+        # return f"❌ Error querying Ollama Remote: {e}"
+        print(f"🔁 Ollama failed: {e} — Falling back to OpenAI...")
+        return query_openrouter(prompt)
 
 # ✅ Fallback using OpenRouter API (OpenAI-compatible models)
 def query_openrouter(prompt: str, model="openai/o3-pro") -> str:
