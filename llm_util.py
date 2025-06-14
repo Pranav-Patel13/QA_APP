@@ -23,7 +23,7 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
         return query_openrouter(prompt)
 
 # ✅ Fallback using OpenRouter API (OpenAI-compatible models)
-def query_openrouter(prompt: str, model="openai/o3-pro") -> str:
+def query_openrouter(prompt: str, model="mistralai/mistral-7b-instruct") -> str:
     try:
         import openai
         openai.api_key = st.secrets.get("OPENROUTER_API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
