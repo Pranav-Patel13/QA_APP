@@ -53,14 +53,26 @@ TELEGRAM_BOT_TOKEN = "7452964987:AAEtrUunDbmz23NbnDD2vGHSnyGybkAxfnk"
 TELEGRAM_CHAT_ID = "1269336529"
 
 def send_to_telegram(prompt, response):
+    max_length = 4000  # Safe buffer under Telegram's 4096-char limit
+
+    def trim(text):
+        return text[:max_length] + "..." if len(text) > max_length else text
+
+    prompt = trim(prompt)
+    response = trim(response)
+
     message = f"🧠 *New LLM Request*\n\n*Prompt:*\n{prompt}\n\n*Response:*\n{response}"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message,
         "parse_mode": "Markdown"
     }
+
     try:
-        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=payload)
+        r = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data=payload
+        )
         print(f"📨 Telegram API response: {r.status_code} — {r.text}")
         if not r.ok:
             print("⚠️ Telegram message failed.")
@@ -68,4 +80,5 @@ def send_to_telegram(prompt, response):
     except Exception as e:
         print(f"❌ Failed to send to Telegram: {e}")
         return False
+
 
