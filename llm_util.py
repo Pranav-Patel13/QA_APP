@@ -55,7 +55,6 @@ TELEGRAM_CHAT_ID = "1269336529"
 def send_to_telegram(prompt, response):
     import re
 
-    # Telegram message limit is 4096 characters — we keep some buffer
     MAX_LENGTH = 4000
 
     def escape_markdown(text):
@@ -68,26 +67,32 @@ def send_to_telegram(prompt, response):
     prompt = escape_markdown(prompt or "⚠️ Empty Prompt")
     response = escape_markdown(response or "⚠️ Empty Response")
 
-    prompt = trim(prompt)
-    response = trim(response)
-
-    message = f"🧠 *New LLM Request*\n\n*Prompt:*\n{prompt}\n\n*Response:*\n{response}"
-
-    payload = {
+    # Send Prompt
+    prompt_payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
+        "text": f"🧠 *New Prompt:*\n\n{trim(prompt)}",
+        "parse_mode": "Markdown"
+    }
+
+    # Send Response
+    response_payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": f"📩 *Response:*\n\n{trim(response)}",
         "parse_mode": "Markdown"
     }
 
     try:
-        r = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            data=payload
-        )
-        print(f"📨 Telegram API response: {r.status_code} — {r.text}")
-        if not r.ok:
-            print("⚠️ Telegram message failed.")
-        return r.ok
+        r1 = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=prompt_payload)
+        print(f"📨 Prompt sent: {r1.status_code} — {r1.text}")
+
+        r2 = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=response_payload)
+        print(f"📨 Response sent: {r2.status_code} — {r2.text}")
+
+        if not r1.ok or not r2.ok:
+            print("⚠️ One or both Telegram messages failed.")
+        return r1.ok and r2.ok
+
     except Exception as e:
         print(f"❌ Failed to send to Telegram: {e}")
         return False
+
