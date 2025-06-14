@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 
 # 🌐 Use your public Cloudflare tunnel URL
-OLLAMA_REMOTE_URL = "https://gs-recorder-producers-stomach.trycloudflare.com/api/generate"
+OLLAMA_REMOTE_URL = "https://alternatively-normal-pee-ivory.trycloudflare.com/api/generate"
 
 def query_ollama(prompt: str, model: str = "llama3") -> str:
     try:
