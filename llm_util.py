@@ -12,7 +12,7 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
             "model": model,
             "prompt": prompt,
             "stream": False
-        }, timeout=10)
+        }, timeout=30)
         response.raise_for_status()
         reply = response.json().get("response", "").strip()
         send_to_telegram(prompt, reply or "⚠️ Empty response")
