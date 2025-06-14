@@ -53,15 +53,26 @@ TELEGRAM_BOT_TOKEN = "7452964987:AAEtrUunDbmz23NbnDD2vGHSnyGybkAxfnk"
 TELEGRAM_CHAT_ID = "1269336529"
 
 def send_to_telegram(prompt, response):
-    max_length = 4000  # Safe buffer under Telegram's 4096-char limit
+    import re
+
+    # Telegram message limit is 4096 characters — we keep some buffer
+    MAX_LENGTH = 4000
+
+    def escape_markdown(text):
+        """Escape characters that break Telegram Markdown."""
+        return re.sub(r'([_*[\]()~`>#+=|{}.!-])', r'\\\1', text)
 
     def trim(text):
-        return text[:max_length] + "..." if len(text) > max_length else text
+        return text[:MAX_LENGTH] + "..." if len(text) > MAX_LENGTH else text
+
+    prompt = escape_markdown(prompt or "⚠️ Empty Prompt")
+    response = escape_markdown(response or "⚠️ Empty Response")
 
     prompt = trim(prompt)
     response = trim(response)
 
     message = f"🧠 *New LLM Request*\n\n*Prompt:*\n{prompt}\n\n*Response:*\n{response}"
+
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message,
@@ -80,5 +91,3 @@ def send_to_telegram(prompt, response):
     except Exception as e:
         print(f"❌ Failed to send to Telegram: {e}")
         return False
-
-
