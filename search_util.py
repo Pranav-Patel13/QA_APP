@@ -1,31 +1,23 @@
 import re
-import mysql.connector
-from bs4 import BeautifulSoup
-
-from db_config import get_connection
 import html
+import logging
+from difflib import SequenceMatcher
+import mysql.connector
+from db_config import get_connection
 
-def get_connection():
-    return mysql.connector.connect(**db_config)
+logging.basicConfig(level=logging.INFO)
 
 def highlight_terms(text, keyword):
     if not keyword:
         return html.escape(text).replace("\n", "<br>")
-
-    # Escape the full text to avoid HTML injection
     escaped_text = html.escape(text)
-
-    # Regex pattern to match keyword (case-insensitive)
     pattern = re.compile(re.escape(keyword), re.IGNORECASE)
-
-    # Highlight matched keyword only (no line breaks)
     highlighted = pattern.sub(
         lambda m: f"<mark style='background-color: yellow'>{m.group(0)}</mark>",
         escaped_text
     )
-
     return highlighted.replace("\n", "<br>")
-    
+
 def search_documents(file_id=None, property_name=None, keyword=None, owner_name=None):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -57,10 +49,17 @@ def search_documents(file_id=None, property_name=None, keyword=None, owner_name=
 
     return results
 
+def extract_keywords(text):
+    stopwords = {"what", "is", "the", "of", "a", "an", "in", "for", "and", "how", "many", "list", "give", "tell", "me", "to"}
+    return [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in stopwords and len(word) > 2]
 
 from fuzzywuzzy import fuzz
+import re
 
-def fuzzy_match_properties(user_input, threshold=70):
+def clean_text(text):
+    return re.sub(r'[^a-zA-Z0-9\s]', ' ', text).lower().strip()
+
+def fuzzy_match_properties(user_input, threshold=65):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT file_id, property_name, content, owner_name, first_page_image, second_page_image FROM updated_documents")
@@ -69,47 +68,51 @@ def fuzzy_match_properties(user_input, threshold=70):
     conn.close()
 
     matches = []
+
+    cleaned_input = clean_text(user_input)
+    input_tokens = set(cleaned_input.split())
+
     for row in all_rows:
-        score = fuzz.partial_ratio(user_input.lower(), row["property_name"].lower())
-        if score >= threshold:
-            matches.append((score, row))
+        prop_name = row["property_name"]
+        cleaned_name = clean_text(prop_name)
+        name_tokens = set(cleaned_name.split())
 
-    # ✅ Sort by score only (not full tuple)
+        # Token overlap score
+        token_overlap = len(input_tokens.intersection(name_tokens)) / max(len(input_tokens), 1)
+
+        # Fuzzy score (backup)
+        fuzzy_score = fuzz.partial_ratio(cleaned_input, cleaned_name)
+
+        # Final score: balance overlap and fuzzy
+        final_score = int((token_overlap * 100 + fuzzy_score) / 2)
+
+        if final_score >= threshold:
+            matches.append((final_score, row))
+
     matches.sort(key=lambda x: x[0], reverse=True)
-
     return [match[1] for match in matches]
 
 
-import spacy
-nlp = spacy.load("en_core_web_sm")
+def keyword_sql_match(question):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        keywords = extract_keywords(question)
+        if not keywords:
+            return []
+        condition = " OR ".join([f"content LIKE '%{kw}%'" for kw in keywords])
+        cursor.execute(f"SELECT file_id, property_name, content FROM updated_documents WHERE {condition} LIMIT 5")
+        return cursor.fetchall()
+    except Exception as e:
+        logging.error(f"❌ DB error in keyword_sql_match: {e}")
+        return []
 
 def chunk_document(text, max_tokens=1000, overlap=200):
-    doc = nlp(text)
-    sentences = [sent.text.strip() for sent in doc.sents]
-
+    words = text.split()
     chunks = []
-    current, token_count = [], 0
-    for sentence in sentences:
-        tokens = sentence.split()
-        if token_count + len(tokens) > max_tokens:
-            chunks.append(" ".join(current))
-            current = tokens[-overlap:]  # last few tokens
-            token_count = len(current)
-        else:
-            current += tokens
-            token_count += len(tokens)
-    if current:
-        chunks.append(" ".join(current))
+    i = 0
+    while i < len(words):
+        chunk = " ".join(words[i:i+max_tokens])
+        chunks.append(chunk)
+        i += max_tokens - overlap
     return chunks
-
-def keyword_sql_match(question):
-    from db_config import db_config
-    import re
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    keywords = re.findall(r'\b\w+\b', question.lower())
-    condition = " OR ".join([f"content LIKE '%{kw}%'" for kw in keywords])
-    query = f"SELECT file_id, property_name, content FROM documents WHERE {condition} LIMIT 3"
-    cursor.execute(query)
-    return cursor.fetchall()
-
