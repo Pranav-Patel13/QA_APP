@@ -62,7 +62,7 @@ def clean_text(text):
 def fuzzy_match_properties(user_input, threshold=65):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT file_id, property_name, content, owner_name, first_page_image, second_page_image FROM updated_documents")
+    cursor.execute("SELECT file_id, property_name, content FROM updated_documents")
     all_rows = cursor.fetchall()
     cursor.close()
     conn.close()
