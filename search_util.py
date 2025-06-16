@@ -2,7 +2,7 @@ import re
 import mysql.connector
 from bs4 import BeautifulSoup
 
-from db_config import db_config
+from db_config import get_connection
 import html
 
 def get_connection():
